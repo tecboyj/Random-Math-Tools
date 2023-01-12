@@ -2,21 +2,23 @@ package Main.Java.ShapeOfFractions.Python;
 
 import java.io.IOException;
 
-public class MultiThreadingBigDecimal extends Thread {
+public class MultiThreadFraction extends Thread {
 
     int x;
     int y;
-    int scale;
-    public MultiThreadingBigDecimal(int x, int y, int scale) {
+    public MultiThreadFraction(int x, int y) {
         this.x = x;
         this.y = y;
-        this.scale = scale;
+    }
+
+    public void terminate() {
+        Python.terminate();
     }
 
     @Override
     public void run() {
         try {
-            Python.mainInput(this.x, this.y, this.scale);
+            Python.mainInput(this.x, this.y);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

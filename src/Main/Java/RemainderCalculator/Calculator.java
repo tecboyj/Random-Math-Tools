@@ -4,6 +4,7 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.awt.Color;
@@ -12,7 +13,7 @@ import java.lang.Math;
 
 public class Calculator {
 
-    private static final int WINDOW_WIDTH = 410;
+    private static final int WINDOW_WIDTH = 490;
     private static final int WINDOW_HEIGHT = 600;
     private static final int BUTTON_WIDTH = 80;
     private static final int BUTTON_HEIGHT = 70;
@@ -36,7 +37,7 @@ public class Calculator {
 
     public Calculator() {
         window = new JFrame("Calculator");
-        window.setSize(WINDOW_WIDTH + 80, WINDOW_HEIGHT);
+        window.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         window.setLocationRelativeTo(null); // Move window to center
 
         comboCalcType = initCombo(new String[]{"Standard", "Remainder"}, 20, 30, "Calculator type", calcTypeSwitchEventConsumer);
@@ -320,16 +321,25 @@ public class Calculator {
         });
 
         btnEqual = initBtn("=", x[2], y[5], event -> {
+            System.out.println("Hello World!");
             if (Pattern.matches("([-]?\\d+[.]\\d*)|(\\d+)", inText.getText()))
-                if (go) {
-                    val = calc(val, inText.getText(), opt);
-                    if (Pattern.matches("[-]?[\\d]+[.][0]*", String.valueOf(val))) {
-                        inText.setText(String.valueOf((int) val));
-                    } else {
-                        inText.setText(String.valueOf(val));
+                if(opt == '/' && !remainder) {
+                    if (go) {
+                        inText.setText(fractionToDecimal(val, Double.parseDouble(inText.getText())));
+                        opt = '=';
+                        addWrite = false;
                     }
-                    opt = '=';
-                    addWrite = false;
+                } else {
+                    if (go) {
+                        val = calc(val, inText.getText(), opt);
+                        if (Pattern.matches("[-]?[\\d]+[.][0]*", String.valueOf(val))) {
+                            inText.setText(String.valueOf((int) val));
+                        } else {
+                            inText.setText(String.valueOf(val));
+                        }
+                        opt = '=';
+                        addWrite = false;
+                    }
                 }
         });
         btnEqual.setSize(2 * BUTTON_WIDTH + 10, BUTTON_HEIGHT);
@@ -443,6 +453,66 @@ public class Calculator {
             answer = x / y;
         }
         return answer;
+    }
+    public static String fractionToDecimal(double num, double den) {
+        if (num == 0) return "0";
+        if (den == 0) return "";
+
+        String result = "";
+
+        // is result is negative
+        if ((num < 0) ^ (den < 0)) {
+            result += "-";
+        }
+
+        // convert int to long
+        //long num = numerator, den = denominator;
+        num = Math.abs(num);
+        den = Math.abs(den);
+
+        // quotient
+        long res = (long) (num / den);
+        result += String.valueOf(res);
+
+        // if remainder is 0, return result
+        long remainder = (long) ((num % den) * 10);
+        if (remainder == 0)
+            return result;
+
+        // right-hand side of decimal point
+        HashMap<Long, Integer> map = new HashMap<Long, Integer>();
+        result += ".";
+        while (remainder != 0) {
+            // if digits repeat
+            if (map.containsKey(remainder)) {
+                int beg = map.get(remainder);
+                String part1 = result.substring(0, beg);
+                String part2 = result.substring(beg, result.length());
+                result = part1 + "(" + part2 + ")";
+                return result;
+            }
+
+            // continue
+            map.put(remainder, result.length());
+            res = (long) (remainder / den);
+            result += String.valueOf(res);
+            remainder = (long) ((remainder % den) * 10);
+        }
+
+        String test = result;
+
+        if (test.length() > 15) {
+            System.out.println("Called");
+            String temp = result.substring(result.indexOf("(") + 1, result.indexOf(")") + 1);
+            result = result.replace(temp, "");
+            temp = temp.replace(")", "");
+            int len = 11 - result.length();
+            temp = temp.substring(0, len);
+            result += temp + "...)";
+        }
+        System.out.println(result);
+
+        return result;
     }
 
     private void repaintFont() {

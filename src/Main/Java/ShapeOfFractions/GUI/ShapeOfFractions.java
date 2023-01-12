@@ -1,6 +1,7 @@
 package Main.Java.ShapeOfFractions.GUI;
 
-import Main.Java.ShapeOfFractions.Python.MultiThreadingBigDecimal;
+import Main.Java.ShapeOfFractions.Python.*;
+import Main.Java.ShapeOfFractions.GUI.CustomClasses.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,12 +12,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ShapeOfFractions implements ActionListener {
-    JFrame frame = new JFrame("Tec_BoyJ");
+    JFrame frame = new JFrame("Shape of Fractions");
     static JPanel panel = new JPanel();
     Font font = new Font("Arial", Font.PLAIN, 24);
     public static int GUISource = 0;
 
-    static int inputScale = 1000;
     static int defaultHeight = 25;
     static int yValueFraction = defaultHeight + 200;
     static int yValueOther = defaultHeight + 200;
@@ -28,18 +28,19 @@ public class ShapeOfFractions implements ActionListener {
     static JTextField textField1 = new JTextField();
     static JTextField textField2 = new JTextField();
 
-    public static Thread shutdownHook = new Thread(() -> Runtime.getRuntime().halt(0));
+    public static Stack<MultiThreadFraction> multiThreadFraction = new Stack<>();
+    public static Stack<MultiThreadOther> multiThreadOther = new Stack<>();
 
 
-    CustomClasses.CustomButton GUI = new CustomClasses.CustomButton("Python", 90, defaultHeight + 75, 200, 40);
-    CustomClasses.CustomButton button = new CustomClasses.CustomButton("GO!", 380, defaultHeight + 50, 240, 40);
-    CustomClasses.CustomButton save = new CustomClasses.CustomButton("Save", 380, defaultHeight + 100, 240, 40);
-    CustomClasses.CustomButton stop = new CustomClasses.CustomButton("EXIT", 710, defaultHeight + 25, 200, 40);
-    CustomClasses.CustomButton all = new CustomClasses.CustomButton("ALL", 710, defaultHeight + 75, 200, 40);
+    CustomButton GUI = new CustomButton("Python", 90, defaultHeight + 75, 200, 40);
+    CustomButton button = new CustomButton("GO!", 380, defaultHeight + 50, 240, 40);
+    CustomButton save = new CustomButton("Save", 380, defaultHeight + 100, 240, 40);
+    CustomButton stop = new CustomButton("EXIT", 710, defaultHeight + 25, 200, 40);
+    CustomButton all = new CustomButton("ALL", 710, defaultHeight + 75, 200, 40);
 
-    CustomClasses.OtherDecimal pi = new CustomClasses.OtherDecimal(yValueOther, "Pi", "31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171");
-    CustomClasses.OtherDecimal root2 = new CustomClasses.OtherDecimal(yValueOther, "Root 2", squareRoot(2, 0, 1));
-    CustomClasses.OtherDecimal goldenRatio = new CustomClasses.OtherDecimal(yValueOther, "Golden Ratio", squareRoot(5, 1, 2));
+    OtherDecimal pi = new OtherDecimal("Pi", "31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171");
+    OtherDecimal root2 = new OtherDecimal("Root 2", squareRoot(2, 0, 1));
+    OtherDecimal goldenRatio = new OtherDecimal("Golden Ratio", squareRoot(5, 1, 2));
 
     public ShapeOfFractions() {
         panel.setLayout(null);
@@ -103,7 +104,7 @@ public class ShapeOfFractions implements ActionListener {
         }
         while (scanner.hasNextLine()) {
             int[] arr = Arrays.stream(scanner.nextLine().split(",")).mapToInt(Integer::parseInt).toArray();
-            new CustomClasses.FractionButton(yValueFraction, arr[0], arr[1], arr[2]);
+            new FractionButton(arr[0], arr[1]);
         }
     }
 
@@ -124,57 +125,39 @@ public class ShapeOfFractions implements ActionListener {
                 GUI.setText("<html>Java <font color='red'>(WIP!)</font></html>");
                 GUISource++;
             } else {
-                GUI.setText("ShapeOfFractions/Python");
+                GUI.setText("Python");
                 GUISource = 0;
             }
         } else if (e.getSource() == stop) {
+            while (!multiThreadFraction.empty() && !multiThreadOther.empty()) {
+                while (!multiThreadFraction.empty()) multiThreadFraction.pop().terminate();
+                while (!multiThreadOther.empty()) multiThreadOther.pop().terminate();
+            }
             frame.dispose();
         }
         else if (e.getSource() == button) {
-            int x = Integer.parseInt(textField1.getText());
+            int x;
+            if (Objects.equals(textField1.getText(), "")) x = 1;
+            else x = Integer.parseInt(textField1.getText());
+
             int y = Integer.parseInt(textField2.getText());
-            new MultiThreadingBigDecimal(x, y, 1000).start();
+            new MultiThreadFraction(x, y).start();
         } else if (e.getSource() == all) {
             while (!stack.empty()) {
-                new MultiThreadingBigDecimal(stack.pop(), stack.pop(), stack.pop()).start();
+                new MultiThreadFraction(stack.pop(), stack.pop()).start();
             }
         } else if (e.getSource() == save) {
-            popUp();
-        }
-    }
-
-    public void popUp() {
-        JFrame popUp = new JFrame();
-        JTextField textField = new JTextField();
-        textField.setBounds(100, 5, 100, 40);
-        textField.setFont(font);
-        textField.setHorizontalAlignment(SwingConstants.CENTER);
-        CustomClasses.CustomButton ok = new CustomClasses.CustomButton("OK", 100, 55, 100, 40);
-        ok.addActionListener(e -> {
-            inputScale = Integer.parseInt(textField.getText());
             try {
                 //File file = new File("config.txt");
                 //FileWriter fileWriter = new FileWriter(file);
                 FileWriter fileWriter = new FileWriter(Objects.requireNonNull(getClass().getResource("/ShapeOfFractions/config.txt")).getPath(), true);
-                fileWriter.write("\n" + textField1.getText() + "," + textField2.getText() + "," + inputScale);
+                fileWriter.write("\n" + textField1.getText() + "," + textField2.getText());
                 fileWriter.close();
-                new CustomClasses.FractionButton(yValueFraction, Integer.parseInt(textField1.getText()), Integer.parseInt(textField2.getText()), inputScale);
+                new FractionButton(Integer.parseInt(textField1.getText()), Integer.parseInt(textField2.getText()));
                 panel.repaint();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            inputScale = 1000;
-            popUp.dispose();
-        });
-
-        popUp.add(textField);
-        popUp.add(ok);
-
-        popUp.setSize(300, 100);
-        popUp.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        popUp.setResizable(false);
-        popUp.setLocationRelativeTo(null);
-        popUp.setLayout(null);
-        popUp.setVisible(true);
+        }
     }
 }

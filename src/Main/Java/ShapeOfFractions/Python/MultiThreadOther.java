@@ -2,11 +2,15 @@ package Main.Java.ShapeOfFractions.Python;
 
 import java.io.IOException;
 
-public class MultiThreadingOther extends Thread {
+public class MultiThreadOther extends Thread {
 
     String string;
-    public MultiThreadingOther(String string) {
+    public MultiThreadOther(String string) {
         this.string = string;
+    }
+
+    public void terminate() {
+        Python.terminate();
     }
 
     @Override
